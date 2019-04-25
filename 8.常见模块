@@ -1,0 +1,147 @@
+常用模块：
+    os 操作系统相关的操作
+    sys 获取python解释器状态
+    datetime 时间日期及相关计算
+    time 处理时间、打印当前时间、强制挂起当前进程
+    requests 网络请求标准库
+    base64 用字符表示二进制数据
+    copy 身复制与浅复制，复制可变数据类型
+    configparser 读取配置文件
+    collections 提供一系列特殊的容器类
+    re 正则表达式库
+
+os
+    os模块提供了一些接口来获取操作系统的一些信息和使用操作系统功能
+    os.path 这个库主要用来获取和处理文件已及文件夹属性
+    os.path.absname(filename) 返回文件的绝对路径
+    os.path.basename(filename) 返回文件名
+    os.path.dirname(filename) 返回文件路径
+    os.path.isfile(filename) 判断路径是否为文件
+    os.path.isdir(filename) 判断路径是否为目录
+    os.path.exists(filename) 判断路径是否存在
+    os.path.join(dir, file) 将目录和文件合成一个路径
+    os.path.split(filename) 将绝对路径分为目录和文件两部分，放入元组中返回
+    os.path.splitext(filename) 将文件名和拓展名分开，放入元组返回
+
+    os.mkdir(dirname) 创建新目录
+    os.rmdir(dirname) 删除目录
+    os.rename('./1.txt', './2.txt') 将该目录的1.txt改为2.txt
+    os.remove(filename) 删除文件
+    os.listdir(dirname) 获取参数目录下的全部目录和文件的名字，包括隐藏文件和隐藏目录
+
+sys
+    sys模块提供了一些对于python解释器的相关操作
+    sys.version 该属性可以获得python解释器的版本信息
+    sys.path 该属性是一个列表，里面是python解释器的搜索路径，其中第一个元素是空字符串，表示当前相对路径
+    sys.argv 该属性可以获得命令行参数列表，列表中每个元素都是字符串，第一个元素为程序名
+
+datetime
+    date 封装了日期的操作
+    datetime 封装日期+时间操作
+    strptime 方法将字符串转换为datetime数据类型
+    strftime 方法将datetime数据类型转换为字符串
+    timedelta 表示一个时间间隔，也就是日期时间的差值
+
+    date.day() 获得此时日期
+    datetime.utcnow() 获得伦敦时间
+    datetime.now() 获得本地时间
+    datetime.now().date() 取日期
+    datetime.now().time() 取时间
+
+    datetime.strptime 字符串转datetime数据类型
+    s = "2020-01-31SYL 11:22:33ok"
+    d = datetime.strptime(s, "%Y-%m-%dSYL %H:%M:%Sok")
+
+    datetimes.strftime datetime数据类型转字符串
+     s = d.strftime("%a %m %d %H:%M:%S")
+
+    timedelta(days=0, seconds=0, microseconds=0, milliseconds,
+               minutes=0, hours=0, weeks=0)
+
+time 用于处理时间，与datetime有些类似
+    time.ctime()  获取当前时间的字符串，格式为：星期 月 日 时：分：秒 年份
+    time.localtime 方法的返回值是struct_time类型的对象，该对象有一些属性可以获取当前各种时间
+    st = time.localtime()
+    st.tm_yday 今天是今年的第几天
+    st.tm_hour 现在是今天的第几个小时
+    st.tm_mon 现在是今年的第几个月
+
+    time.strftime方法可以将struct_time类型对象格式化为字符串
+    time.time 方法的返回值是从公元前1970年至此时此刻的秒数，它是一个浮点数
+    经常与之配合使用的另一个方法time.sleep 可以强制挂起当前进程，即在某一段时间内，什么也不做
+
+requests
+    网络请求常用标准库
+    import requests ->  requests.get()
+
+bbase64
+    base64是一种编码方式，它可以将二进制数据编码64可以打印的ASCII字符。
+
+
+copy
+    copy.copy() 浅复制，使用该方法获得的新列表与原理列表值相同，但内存地址不同
+    copy.deepcopy 深复制， deepcopy方法可以将可变对象的所有元素都克隆一次并放到新的内存地址
+
+configparser
+    配置文件通常是在程序初始化时对程序或服务进行配置的文件。配置文件有很多种，
+    例如ini, json, xml, yaml等。 configparser模块支持对ini格式的配置文件进行读取以及修改
+
+collections
+    判断数据类型
+        可迭代对象Iterable  如： isinstance('shiyanlou, Iterable)
+        迭代器 Iterator
+        生成器 Generator
+    OrderedDict 是一个特殊的字典，本质上是一个哈希表，OrderedDict可以保持元素插入的顺序。
+
+    namedtuple
+        使用普通的元组存在一个问题，每次用下标去获取元素，可能会不知道你这个下标下的元素到底代表什么
+        namedtuple能够创建类似元组的类型，可以用索引来访问数据，能够迭代，也可以通过属性名访问数据
+        例子：
+            from collections import namedtuple
+            Point = namedtuple('Point', ['x', 'y'])
+            p = Point(10,12)
+            p.x ->12
+
+    Counter
+        Counter用来统计一个可迭代对象中各个元素出现的次数，以字符串为例
+        c = Counter("https://www.shiyanlou.com")
+
+re正则表达式
+    在做文字处理或编写程序时，用到查找、替换等功能，使用正则表达式能够简单快捷的完成目标。
+    简单而言，正则表达式通过一些特殊符号的帮助，使用户可以轻松快捷地完成查找、删除、替换等处理程序
+
+    正则表达式是一个特殊的字符序列，从对象字符串中匹配它，可以获得想要的字符串片段。
+
+    要获取某个字符或字符串，使用findall方法可以获取全部能够匹配的片段，第一个参数为正则表达式，第二个参数为匹配对象
+
+    元字符：
+        \d 获取所有数字 0-9
+        \D 匹配所有非数字
+        \w 匹配所有单词字符，包括大小写字母、数字、下划线、中文
+        \W 匹配剩下的、空格、换行符、特殊字符等
+     字符集 字符的集合，用中括号表示[],它匹配任意一个符合条件的字符
+        字符集内^表示 非，它只能在字符集内被使用；
+        字符集外^在模式的开始处使用，表示需要在行的开始处进行匹配
+    空白字符 四种： 1. ' ' 空格  2. \n 换行符 3. \t 制表符 4. \r回车符
+        使用元字符\s匹配它们，自然\S匹配任意非空白字符
+
+    数量符号和特殊数量符号
+        使用大括号{}标定匹配字符的数量，默认是贪婪模式，即尽可能多的匹配字符
+        ?表示非贪婪模式，即选取最少的匹配字符
+
+        特殊数量符号：
+            * 匹配任意数量的字符
+            ？ 匹配0或1个字符
+            + 匹配1个或多个字符
+            . 匹配除换行符\n以为任意1个字符
+
+        边界字符
+            在模式的开始处使用^表示需要在行的开始进行匹配。
+            在模式的末尾使用$表示需要在行的末端进行匹配
+
+        字符组
+            把任意数量的字符用小括号扩括起来，就是字符组，目的是为匹配成功的字符串进行分组
+
+        模式参数
+            findall方法还有第三个参数： re.I 忽略大小写，re.S匹配空白字符
+            多个模式用|隔开
