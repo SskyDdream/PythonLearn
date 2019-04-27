@@ -1,0 +1,166 @@
+Flask入门
+    简介
+        python web  框架是我们可以用来开发Web应用的python库，目前比较著名是Flask和Django
+        Flask是python社区比较知名的微框架。Flask本身只维护一个核心，被设计成可以通过插件拓展。
+        如果和另一个知名的python Web框架Django做对比的话，Django更像一个大品牌的电脑整机，你不用担心什么配件，你需要什么
+        Django全家桶都有。而Flask可以说是一个组装机，更准确的说是一个设计精良的CPU。这给了很大的灵活性去选择需要的配件。
+
+    知识点
+        Flask简介、配置方法、路由和视图函数、模版渲染、GET与POST、session、cookies、错误处理、插件
+
+最小的应用
+    app = Flask(__name__)
+        用于初始化。使用时必须创建Flask类的实例对象app，服务器使用wsgi协议把来自客户端的所有请求都转交给app对象处理。
+        在生成实例对象时，需要传递_name_参数，这个参数在python解释器中会被解释为程序主模块或包的名字，这个参数决定了程序的根目录，以便之后从根目录去找到其他资源文件
+
+    @app.route('/')
+        这是路由。我们在浏览器中输入一个URL，浏览器发送请求URL给Web服务器，服务器转发请求URL给程序实例app，程序实例app把请求URL映射到相应的处理函数进行处理。
+        处理URL和函数之间映射关系的程序称为路由。在flask中定义路由会使用@app.route()装饰器，参数为请求的相对路径
+
+    index()
+        这是视图函数。对客户端请求进行处理的函数被称为视图函数，视图函数处理后会返回处理结果，再由web服务器把结果返回给客户端。
+
+    Flask提供了一个管理Flask应用的命令行工具，首先要设置应用的环境变量，在终端中执行以下命令
+    export FLASK_APP+=app.py
+    export_FLASK_DEBUG=1
+    环境变量FLASK_APP是用来指向flask run执行的Flask应用代码的路径，这里是app.py的路径。
+    FLASK_DEBUG=1表示打开DEBUG信息，可以输出访问和出错信息，帮助我们解决代码中出现的问题，建议后续只要执行flask run都要打开，开启DEBUG模式后可以自动重载代码
+
+
+flask shell
+    除了flask run之外，还有一个常用的命令flask shell，这两个命令都会自动把FLASK_APP环境变量中指定的代码模块进行加载，不同的是flask run
+    直接进入到运行app的状态，而flask shell只加载并进入到一个Shell终端，在这个终端中可以执行一些代码，比如后续章节要用到的初始化数据库，向数据库插入一些数据
+
+配置
+    初始化一个Flask app后，可以通过 app.config 管理配置。app.config存储的配置信息本质上是个字典，所以你可以用字典的方法添加或更新配置。
+    比如说，初始化app后，配置一个密钥
+    app = Flask(__name__)
+    app.config.update({ 'SECRET_KEY': 'a random string'})
+    所有的配置选项需要用大写，多个单词用下划线_连接。大型项目中，配置通常写在一个单独的config.py文件中，这时候可以用app.config提供的特有方法来更新config,
+    参数是配置文件config.py的路径：
+    app.config.from_pyfile('path/to/config.py')
+    其他类似的方法：
+    from_envvar(variable_name) 使用一个环境变量指定的配置文件更新配置
+    from_object(obj) 使用一个对象更新配置文件，dict无效
+    from_json（filename）使用JSON文件更新配置
+    from_mapping(*mapping, **kargs) 类似前面的update，不同的是，这个方法不强制使用大写字母
+
+路由和视图函数
+    Flask使用@app.route装饰器来将路由映射到对应的视图函数上，形成一一对应的关系，每一个路由都有对应的视图函数来处理
+    静态路由  @app.route('/')
+    动态路由 格式为<variable_name>,比如每个用户的主页需要不同的路由，可以使用用户名作为路由的变量
+    @app.route('/user/<username>')
+    def user_index(username):
+        return 'Hello {}'.format(username)
+    还可以指定路由变量的类型 如 app.route('/post/<int:post_id>')
+
+url_for
+    在Flask中不仅可以静态匹配URL，也可以使用url_for()函数在程序中动态构造URL
+    url_for函数的第一个参数是视图函数的名字，如果该视图函数对应的URL需要传递参数则将参数以key=value的形式写在后面，
+    未知变量部分会添加到URL末尾作为查询参数。url_for()函数最终返回的是视图函数对应的URL地址
+
+    使用方法： url_for('函数名'， 命名参数, 其他参数, _external, _anchor)
+    其中：
+        _external=True 返回绝对地址，不填的话默认返回相对路径
+        _anchor 用于生成锚点，就是我们经常在浏览器中见到的类似#这样的链接地址 http://example.com/home#
+
+
+redirect
+    在Flask中可以使用重定向redirect()把来自客户端的请求URL地址重定向到另外一个URL地址，实现访问地址的自动跳转。
+    redirect()方法通常和url_for()方法一起使用
+
+
+模板渲染
+    在上面的例子中，处理函数返回的都是字符串，但是在真正项目中，需要使用HTML编写页面，不可能把所有的内容都写到字符串中。
+    模板引擎的作用就是你用模板规定的语法编写HTML页面，在处理函数指定模板，传入相应的模板变量，Flask就能调用模板引擎自动渲染一个完整的HTML页面
+
+    Flask使用的模板引擎是jinjia2，理论上你是可以更换其它模板引擎的，但是jinjia2已经足够好用
+
+    Flask使用render_template函数渲染模板，指定一个模板名称后，Flask会到templates目录去找这个模板，然后使用传入的变量渲染模板
+
+    在jinjia2中， 用 {{ }} 来渲染一个字符串变量。
+
+
+GET与POST
+    一般常用的两种请求方法就是：GET请求和POST请求
+    GET请求：
+        只是从服务器上获取数据，不会对服务器上的数据产生影响（通常是查询操作）。
+        传参放在URL中，通过?的形式指定key和value。GET请求获取参数是通过request.args.get('key')
+
+    POST请求：
+        用于向指定的资源提交被处理的数据，会对服务器的数据产生影响(做增加、删除、修改的操作)
+        传参数不会放在URL中，通过表单数据的形式传给服务器。POST请求获取参数是通过request.form.get('key')
+
+    GET请求：
+        从request.headers获取请求头的数据，可以把它当作字典来使用，比如要获取用户的user-agent
+        request.headers.get('user-agent')
+        request.args.get('key') 获取请求的参数
+
+    POST请求：
+        一般而言，POST请求是通过表单传递数据的，可以通过request.form获取表单数据，通过request.method获取当前请求的方法(GET or POST)
+
+
+session
+    HTTP协议是无状态的，每一次请求它们的关系都是相互独立的。但在实际的应用中，我们确实有很多数据需要服务器记住，但又不合适放在数据库中。
+    比如说，一个登录页面需要在用户输错三次后要求输入验证码，服务器就需要一个计数器记录错误次数，但把它放在数据库也不合适。
+    session就是用来为每个用户独立存放一些数据的地方。存放在session里的数据可以在特定用户的多个请求之间共享。
+    因此session是在服务端保存的一个数据结构，用来追踪用户的状态
+    设置session ：
+                session.permanent = True 设置session的持久化
+                app.permanent_session_lifetime = timedelta(minutes=5) 设置session存活时间为5分钟
+                session['username'] = 'shiyanlou'
+    获取session  session.get('username')
+    移除session  session.pop('username')
+
+
+cookies
+    cookies与session类似，只不过cookies是以文本文件形式存在于客户端的加密信息。
+    在Flask中，cookie使用配置的SECRET_KEY作为签名进行加密
+
+    在Flask中，cookie设置在响应对象上，使用make_response()函数从视图函数的返回值获取响应对象，使用响应对象的set_cookie()函数存储cookie
+
+    设置 cookie:
+        response.set_cookie(
+            key, 键
+            value, 值
+            max_aeg, 以秒为单位的cookie存活时间
+            expires, 失效时间，这是一个datetime的对象
+            path 存储路径
+        )
+
+    获取 cookie
+        request.cookies.get('key')
+
+    删除 cookie
+        response.delete_cookie('key')
+
+
+错误处理
+    使用app.errorhandler装饰器可以注册错误处理函数，比如常见的404错误，我们返回一个特定的404.html页面
+    @app.errorhandler(404)
+    def not_found(error):
+        return render_template('404.html'), 404
+
+    在Flask中还有一个经常用来处理错误的方法abort()，使用abort(404)则能够直接进入到页面无法找到(HTTP状态码404)的处理逻辑
+
+插件
+    Flask被设计成可拓展形式，开发者可以自主选择最适合的程序包来实现一些功能
+    flask-sqlalchemy: ORM, 封装了sqlalchemy，使用更简单
+    flask-login: 管理session，如登入。登出，session过期管理等等
+    flask-migrate: 数据库版本管理
+    flask-wtf: 封装了wtforms表单生成与验证工具，提供CSRF支持
+    flask-session: flask默认session基于客户端cookie的，这个插件方便在服务端做session
+
+
+
+
+
+
+
+
+
+
+
+
+
+
