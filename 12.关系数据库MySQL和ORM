@@ -1,0 +1,231 @@
+关系数据库MySQL和ORM
+    简介
+        Web开发中，离不开数据库的支持，本实验中我们将学习关系数据库MySQL和ORM SQL Alchemy。
+        MySQL是应用最广泛的数据库，而SQLAlchemy是python语言中最流行的ORM
+        ORM： Object Relational Mapping (对象关系映射)
+
+    知识点
+        MySQL基础知识、关系数据库基础、SQLAlchemy基础知识
+
+    MySQL
+        MySQL是应用最广泛的关系数据库。关系数据库使用关系模型作为数据组织存储的方式，可以分为四级结构：
+        数据库，比如一个应用对应一个数据库
+        表，一个数据库对应若干表
+        记录， 一个表包含若多条记录
+        字段，一条记录包含若干字段
+
+        一张表的结构可以想象成一张EXCEL表，由多个字段组成，每一个字段都可以存储特定类型的数据，比如字符串或者数字，在创建表的时候可以指定类型。
+        表与表之间通过关系连接(逻辑上的关系)，查询数据时可以通过关系跨越多张表进行查询
+
+        关系数据库最重要的特性是满足ACID性质：
+
+            1、A (Atomicity) 原子性
+            原子性很容易理解，也就是说事务里的所有操作要么全部做完，要么都不做，事务成功的条件是事务里的所有操作都成功，只要有一个操作失败，整个事务就失败，需要回滚。
+                 比如银行转账，从A账户转100元至B账户，分为两个步骤：1）从A账户取100元；2）存入100元至B账户。这两步要么一起完成，要么一起不完成，如果只完成第一步，第二步失败，钱会莫名其妙少了100元。
+
+             2、C (Consistency) 一致性
+             一致性也比较容易理解，也就是说数据库要一直处于一致的状态，事务的运行不会改变数据库原本的一致性约束。
+
+             例如现有完整性约束a+b=10，如果一个事务改变了a，那么必须得改变b，使得事务结束后依然满足a+b=10，否则事务失败。
+
+             3、I (Isolation) 独立性
+             所谓的独立性是指并发的事务之间不会互相影响，如果一个事务要访问的数据正在被另外一个事务修改，只要另外一个事务未提交，它所访问的数据就不受未提交事务的影响。
+             比如现有有个交易是从A账户转100元至B账户，在这个交易还未完成的情况下，如果此时B查询自己的账户，是看不到新增加的100元的。
+
+             4、D (Durability) 持久性
+             持久性是指一旦事务提交后，它所做的修改将会永久的保存在数据库上，即使出现宕机也不会丢失。
+
+             ACID能够保证事务的可靠性，就是能够保证一系列的数据库操作组成一个完整逻辑过程，要么全部执行，要么彻底不执行，不会出现执行一般的情况。
+             为了满足ACID性质，MySQL支持各种约束，比如插入一条数据时，需要检查外键是否存在，这些操作虽然能够确保数据的一致性，但是很多时候却降低了并发操作的能力。
+             如果有高并发的需要，往往不再使用关系数据库的acid,更有的直接使用非关系数据库。
+
+             主键(primary key) 数据库表对存储数据对象予以唯一和完整标识的数据列或属性的组合。一个数据列只能用一个主键，且主键的取值不能缺失，即不能为空值(Null)
+
+
+             外键(foreign key) 其实在关系数据库中，每个数据表都是由关系连系彼此的关系，父数据表(Parent Entity)的主键(primary key)会放在另一个数据表，
+             当作属性以创建彼此的关系，而这属性就是外键
+
+             比如，学生和老师对应着教学关系，学生数据表会有个属性叫指导老师(外键)，而这个值就是对应到老师数据表的老师代号(主键)
+
+        virtualenv
+            在本节实验中会使用Python操作MySQL数据库，由于Python版本众多，相应依赖的模块的版本也很多，如果在一台电脑上同时开发多个应用就常常会出现版本冲突，
+            这个时候虚拟环境virtualenv就派上用场了
+            安装virtualenv：
+                sudo pip3 install virtualenv
+            创建一个虚拟环境：
+                virtualenv venv
+            后续的开发工作就可以全部在虚拟环境中进行，当开发完可以把环境中的安装包依赖名称导出：
+                pip freeze > requirement.txt
+
+            退出虚拟环境：
+                deactivate
+
+            如果要删除某个虚拟环境可以直接找到该虚拟环境的文件夹，执行删除操作就行：
+                rm -rf venv
+
+        环境准备
+            安装MySQL数据库软件(mac),安装之后需要设置环境变量。
+            手动启动MySQL服务，通过如下命令
+                sudo service mysql start
+            sudo pip3 install mysqlclient 安装MySQL客户端
+            这个包的作用是让Python可以连接MySQL数据库，如果不安装，连接数据库会出现错误： No module named MySQLdb
+
+
+         MySQL数据库由服务器端和客户端组成，可以通过客户端连接到服务器。root是MySQL数据库的超级管理员账户，因为没有设置密码
+         mysql -uroot
+
+
+         基本操作
+
+
+            创建数据库非常简单，只要输入create database <db_name>;就可以了，其中<db_name>代表数据库名称，
+            查看所有的数据库可以通过show databases; 而删除数据库则通过drop database <ab_name>
+
+            数据库创建成功之后，就可以创建表了。在创建表之前，需要通过 use shiyanlou; 命令连接到shiyanlou数据库
+            CREATE TABLE 表的名字(
+            列名a 数据类型(数据长度)，
+            列名b 数据类型(数据长度)，
+            列名c 数据类型(数据长度)，
+            )
+
+            查询所有的表 show tables;
+            删除某个表 drop table <table_name>;
+
+            如果想查看一张表的字段信息，可以通过show create table <table_name> 或这 describe <table_name>
+
+            MySQL表的字段支持多种类型，如整数，浮点数，字符串，时间戳。
+
+            表创建成功之后，可以使用 insert 指令插入数据，完整的格式如下：
+                INSERT INTO 表的名字(列名a, 列名b, 列名c) VALUES(值1，值2，值3)；
+
+            当插入的值和表定义的字段数量一致且顺序一致时，可以忽略列名信息，通过以下命令往user表中插入数据
+            例如：
+                insert into user values(2, 'lxtxx', 'lxtxx@simple.com');
+
+            查询某张表的数据可以通过select * from <table_name>;
+
+            约束
+                MySQL是一个关系数据库，可以通过约束限制一些数据操作。比如插入数据时，可以检查该数据是否满足约束，如果不满足则拒绝操作
+                如果我们要求字段具有唯一约束，对于一个已经存在的表，我们可以通过 alter 指令修改表的字段，设置唯一约束
+                alter table user modify email varchar(64) unique;
+
+                alter table user add constraint unique (email);
+
+                还有一种约束是跨表的。在表中插入数据项时，要求该数据项的某一个字段值必须已经在其它表中存在，比如外键约束。
+                插入数据时，如果不满足外键约束则不允许插入，删除数据如果破坏了外键约束也会禁止删除数据。
+                外键约束创建时，必须要求另一张表中存在主键，主键在表中能唯一确定某一行的值。
+
+                下面创建一张具有外键约束的course表，在创建course表之前，需要在user表中设置主键
+                在已经存在的user表中添加字段ID，并设置为主键
+                -> alter table user add constraint pk_id primary key (id);
+
+                -> create table course(
+                -> id int(10) auto_increment,
+                -> name varchar(64),
+                -> teacher_id int(10),
+                -> primary key (id),
+                -> constraint fk_user foreign key (teacher_id) references user(id));
+
+                auto_increment 指定了字段为id为自增模式，这样每次插入数据时不用指定该字段，插入数据后这个字段会自动增加。
+                接着通过primary key(id) 语句指定了这个表的主键为id，最后设置了字段 teacher_id 为外键，且关联到user表的id字段
+
+                很多时候需要进行联合跨表查询，比如想知道课程的名称，课程老师的名称、邮箱信息等就需要联合查询
+                mysql> select * from course join user on course.teacher_id = user.id;
+                例子中使用join指令进行联合查询，on关键字指定了两张表的关联方式
+
+
+    SQLAlchemy
+        在实际项目中，一般都不直接写SQL语句访问数据库，而是通过ORM工具，也就是对象关系映射，有了ORM之后可以将python对象映射到数据库，
+        这样就不用再编写各种SQL语句了。
+
+
+        连接数据库
+            使用SQLAlalchemy连接数据库主要通过 Engine对象进行，在IPython终端输入以下代码：
+                from sqlalchemy import create_engine
+                engine = create_engine("mysql://root:@localhost/shiyanlou", echo=True)  # python2
+                engine.execute('select * from user').fetchall()
+        首先导入create_engine, 该方法用于创建Engine实例，传递给create_engine的参数定义MYSQL服务器的访问地址，
+        python2：格式为mysql://<user>:<password>@<host>/<db_name>,接着通过engine.execute方法执行一条SQL语句，查询user所有的用户
+        python3: mysql+pymysql://<user>:<password>@<host>/<db_name>?charset=utf8
+        例如：
+            engine= create_engine('mysql+pymysql://root:@127.0.0.1/shiyanlou?charset=utf8')
+
+        对象关系映射
+            如果想使Python类映射到数据库表中，需要基于SQLAlchemy的declarative base class,也就是声明基类创建类。
+            当基于此类，创建python类时，就会自动映射到数据库表上。创建声明基类类，可以通过declarative_base方法进行，如下代码
+                from sqlalchemy.ext.declarative import declarative_base
+                Base = declarative_base() 注意：当创建的类映射的数据库表已经存在时，可以用Base.metadata.clear()
+
+                from sqlalchemy import Column, Integer, String
+
+                class User(Base):
+                    __tablename__ = 'user'
+                    id = Column(Integer, primary_key=True)
+                    name = Column(String(50))
+                    email = Column(String(50))
+                    def __repr__(self):
+                        return "User<name=%s>" % self.name
+
+                 魔法方法__repr__在直接调用实例对象时的时候会调用，其中__table_named对应着表名，__table__属性记录着定义的表信息
+
+                 如果想通过User类插叙数据库的话，需要先引入session。Session是映射类与数据库沟通的桥梁，包含事务管理功能，通过以下代码创建Session
+
+                    In [30]: from sqlalchemy.orm import sessionmaker
+
+                    In [31]: Session = sessionmaker(bind=engine)
+
+                    In [32]: session = Session()
+
+                    这里的代码先从sqlalchemy.orm 中导入 sessionmaker，然后创建sessionmaker对象Session，其中Session对象又一个魔法方法(__call__)
+                    这个魔法方法让Session对象可以像函数那样调用，从而使用Session()获得了session对象
+
+                    如果在上文创建Engine时，通过echo参数开启了SQL语句(engine=create_engine(mysql://root:@localhost/shiyanlou,echo=True))
+                    那么使用session查询的时候，可以看到相应的SQL输出
+
+
+        创建数据库表
+            Base.metadata.create_all(engine)
+            backref = 'labs' ????
+
+
+        简单的CURD操作
+            基于前面创建的User、Course和Lab类，我们进一步学习创建、查询、更新、删除操作。有了ORM映射以后，创建数据库记录就非常简单，
+            比如想创建一个实验，该实验关联到前文插入的课程上，只需要创建Lab的实例就可以了。
+            session.commit() 提交到数据库
+            session.add() 添加到数据库
+            关联课程的两种方法：
+            一种是直接赋值给course_id，  lab1 = Lab(name="ORM基础", course_id=course.id)
+            另一种是赋值给定义的属性 courselab2 = Lab(name="关系数据库", course=course)
+            session.delete()
+
+            执行增加、修改、删除操作时，都需要session.commit()，才会在数据库实现
+
+            path类插入字典 报错 1064
+
+        1:1和M：M的关系建立
+            1：1 两张表的数据项是一对一的关系，假设用户只有一项附属信息，这个时候用户和附属信息表就是一对一关系
+            1：M 比如上文的课程和实验的关系，一个课程对应多个实验
+            M：M 多对多关系，比如课程与标签的关系， 一个课程由多个标签，而一个标签可以关联多个课程
+
+
+
+        补充：
+        class Person(db.Model):
+            id = db.Column(db.Integer, primary_key=True)
+            name = db.Column(db.String(50), nullable=False)
+            addresses = db.relationship('Address', backref='person', lazy=True)
+
+        class Address(db.Model):
+            id = db.Column(db.Integer, primary_key=True)
+            email = db.Column(db.String(120), nullable=False)
+            person_id = db.Column(db.Integer, db.ForeignKey('person.id'),
+                nullable=False)
+
+
+        backref是一种在Address类上声明新属性的简单方法。然后，您还可以使用 my_address.person该地址的人员。
+         lazy定义SQLAlchemy何时从数据库加载数据：
+
+
+
+
+
