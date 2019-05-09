@@ -1,0 +1,184 @@
+NoSQL数据库
+    简介
+        如今的网站对数据存储的要求越来越灵活了，在这种需求下NoSQL也就是非关系数据库越来越流行。
+        所谓非关系数据库就是指不使用SQL语言进行数据操作的数据库的统称。这类数据库存储数据时没有固定的模式，不支持数据表join的操作
+        可以很方便的横向扩展
+
+    知识点
+        MongoDB的基础操作、Redis基础操作、使用Python访问MongoDB和Redis;
+
+    MongoDB
+        MongoDB是非常流行的NoSQL数据库，支持自动化的水平扩展，同时也被称为文档数据库，因为数据按文档的形式进行存储（BSON对象，类似JSON）
+        在MongoDB中数据存储的组织方式主要分为四级：
+            数据库实例，比如一个app使用一个数据库
+            collection文档集合，一个数据库包含多个文档集合，类似MySQL中的表
+            document文档，一个文档代表一项数据，类似于JSON对象，对应于MySQL表中的一条记录
+            字段，一个文档包含多个字段
+
+        MongoDB存储的数据可以是无模式的，比如说一个集合中的所有文档不需要有一致的结构，也就是说一个文档可以插入不同数据类型的数据
+
+        环境准备
+            brew install Mongodb （mac）
+
+        启动数据库
+            brew services start mongodb
+
+        连接数据库
+            mongo
+            mongo是MongoDB的客户端shell，执行命令时，可以指定连接的MongoDB地址等信息，未指定命令时将连接默认地址，
+            默认情况下MongoDB服务会监听在127.0.0.1:27017
+
+            对于使用python访问mongodb，需要先安装PyMong软件包，该包实现了Python的MongoDB驱动
+            pip3 install pymongo
+
+
+        CURD操作
+            MongoDB存储的文档记录是一个BSON对象，类似于JSON，由键值对组成。比如一条用户记录：
+                {
+                    name: 'Aiden',
+                    age: 13,
+                    email: 'Aiden@163.com'
+                }
+            每一个文档都有一个_id字段，该字段是主键，用于唯一的确定一条记录。如果往Mongodb插入数据时没有指定_id字段，
+            那么会自动产生一个_id字段，该字段的类型是ObjectId,长度是12个字节。
+            在Mongodb文档的字段支持字符串，数字，时间戳等类型，一个文档最大可以达到16M
+
+            use <database_name> 如 use shiyanlou, 切换到实验楼数据库，若不存在就会被自动创建
+            show databases; 和 show collections; 分别显示当前存在的数据库和当前数据库的所有文档集合
+
+            插入数据
+                db.collection.insertOne({...}) 插入一条数据
+                db.collection.insertMany([ {..}, {...} ]) 插入多条数据
+
+            查询数据,可以指定查询条件
+                db.collection.find() 查询所有文档
+                db.collection.find({name: 'jin'}) 查询名字等于jin的文档
+                db.collection.find({age: {$gt: 30}}) 查询年龄大于30的文档
+                db.collection.find({addr: 'CD'}) 查询addr数组是否存在'CD'字符串的文档
+
+            更新数据
+                db.collection.updateOne()
+                如 db.user.updateOne({name: 'Aiden'}, {$set: {age:29, addr: ['CD', 'SH', 'BJ']}})
+                db.collection.updateMany()
+
+            删除数据
+                db.collection.deleteOne()
+                db.collection.deleteMany()
+
+
+        python操作mongdb
+
+            python访问mongdb主要是通过PyMongo软件包。该软件包含在一个MongoClient对象，可以用于建立MongoDB客户端
+            from pymongo import MongoClient # 导入客户端
+            client = Mongoclient('127.0.0.1', 27017) # 连接数据库
+            db = client.shiyanlou # 选择shiyanlou数据库
+
+            查询数据
+                db.user.find()
+                db.user.find_one({'name': "Aiden"})
+
+            插入数据
+                db.user.insert_one({...})
+
+            更新数据
+                db.user.update_one({..}, {..}) 更新数据，先要指定修改的哪一个文档，然后用$set 修改或增加字段
+
+            删除数据
+
+
+    Redis
+        Redis是一个内存数据库，通过key-value键值对的方式存储数据。由于Redis的数据都储存在内存中，所以访问速度非常快，
+        因此Redis大量用于缓存系统，存储热点数据，可以极大的提高网站的响应速度。
+        相对于其它内存数据库，Redis又以下几个优点：
+            支持数据的持久化，通过配置可以将内存中的数据保存在磁盘，Redis重启以后再将数据加载到内存
+            支持列表、哈希、有序集合等数据结构，极大扩展了Redis用途
+            原子操作，这使得基于Redis实现分布式锁非常简单
+            支持发布/订阅功能，数据过期功能
+
+        环境准备
+            brew install redis
+
+            启动数据库
+                brew services start redis
+
+            链接到数据
+                redis-cli
+
+                redis-cli 是Redis的客户端Shell，执行该命令时可以指定连接的Redis服务地址等信息，
+                未指定时将连接默认地址，Redis服务默认监听127.0.0.1:6379,后文出现的所有Redis操作命令都将基于redis-cli输入
+
+
+                对于python访问Redis， 我们需要先安装redis-py软件包，该包实现 python 的redis驱动
+
+        基本操作
+            Redis是Key-Value内存数据库，操作是通过各种指令进行的，比如SET指令可以设置键值对，而GET指令则获取某一个键的值。
+            不同的数据结构，Redis有不同的指令，下面介绍一些常用的指令
+
+                SET key value 设置键值
+                EXISTS key 判断键是否存在
+                EXPIRE key seconds 设置Key的过期时间，过期以后Key将自动删除
+                TTL key 获取Key的剩余生存时间
+                DEL key 删除Key
+                Type Key 获取Key对应的Value的类型
+
+
+            Redis还支持其它的数据结构，不仅仅是简单的字符串键值对，比如支持哈希类型的键值，
+                这种数据结构中Key对应于一个哈希，而哈希又包含多个字段和相应的值
+                HSET key field value 设置名称为key的哈希的字段field为值value
+                HGETALL key 获取key的哈希所有字段和Value
+
+                HKEYS key 获取key的哈希所有字段
+                HGET key field 获取名为key的哈希的字段field
+
+                HLEN key 获取名为key的哈希的字段数量
+
+
+            Redis还支持有序集合，有序集合可以用于快速实现排名功能，主要的指令如下
+                ZADD key score member 将成员和对应的评分添加到有序集合中
+                ZREVRANK key member 获取member在有序集合key中的排名
+
+
+            补充两个数据类型
+                数据类型-列表
+                    lpush num one two three # 创建num列表
+                    type num # 查看num数据类型
+                    lrange num 0 -1 # 打印全部元素
+                    llen num # 列表长度
+
+                数据类型-集合
+                    sadd player James Kobe Wall # 创建 player集合
+                    smembers player # 查看集合内全部成员
+                    scard player # 集合成员内数量
+                    srem player Kobe # 删除某个成员
+                    spop player # 随机删除某个成员
+
+
+        python操作Redis
+            python通过redis-py软件包进行
+            import redis
+            r = redis.StrictRedis(host='127.0.0.1', db=0)
+            r.ping()
+            通过redis.StrictRedis创建一个Redis客户端，其中db指定了链接的逻辑数据库编号为0
+
+            redis 也支持发布订阅消息模式。该功能使发布者和订阅者解耦，不需要对方的存在，只需要简单的往某一频道上发送数据就行了
+            订阅该频道的订阅者会自动收到消息。
+                In [5]: p = r.pubsub()
+
+                In [6]: p.subscribe('labreport-channel')
+
+                In [7]: for msg in p.listen():
+                ...:     print(msg)
+                ...:
+                {'type': 'subscribe', 'pattern': None, 'channel': b'labreport-channel', 'data': 1}
+                -----------------------
+                127.0.0.1:6379> publish labreport-channel "1 msg from redis-cli"
+                (integer) 1
+                --------------------
+                In [7]: for msg in p.listen():
+                ...:     print(msg)
+                ...:
+                {'type': 'subscribe', 'pattern': None, 'channel': b'labreport-channel', 'data': 1}
+                {'type': 'message', 'pattern': None, 'channel': b'labreport-channel', 'data': b'1 msg from redis-cli'}
+
+
+
