@@ -1,0 +1,67 @@
+知识点
+    页面追随、图片下载、Item包含多个页面数据、模拟登录
+
+
+页面追随
+    在很多网站中，url并不是那么轻松构造的，更常用的方法是从一个或多个链接（start_urls）爬取页面后，
+    再从页面中解析需要的链接继续爬虫，不断循环。
+    下面是一个简单的例子，从课程编号63的课程主页，从课程相关的进阶课程获取下一批要爬取的课程
+    关键代码如下
+             1.
+             for url in response.xpath('//ul[@class="course-list-ul"]/li/a/@href').extract():
+                yield scrapy.Request(url=response.urljoin(url), callback=self.parse)
+             2.
+             for url in response.xpath('//ul[@class="course-list-ul"]/li/a/@href'):
+                yield response.follow(url, callback=self.parse)
+
+    可以看出第二种方法使用response.follow不需要构造全url，也不需要extract
+
+
+图片下载
+    代码完成后，需要在setting.py启动scrapy内置的图片下载pipeline
+    ITEM_PIPELINES = {
+        'scrapy.pipelines.images.ImagesPipelines': 100
+    }
+
+    配置图片储存的目录（images/full）
+        IMAGES_STORE = 'images'
+
+    指定图片的尺寸
+        IMAGES_THUMBS = { 'small': (50, 50)}
+
+
+组成item的数据在多个页面
+    在实际的爬虫项目中，经常会遇到从不同的页面抓去数据组成一个item。
+    有一个需求，爬取实验楼课程首页所有课程的名称、封面图片链接和课程作者。课程名称和封面图片链接在课程首页就能爬到，
+    课程作者只有点击课程，进入课程详情页面才能看到，怎么办呢？
+
+    scrapy的解决办法是多级request与parse。简单的说就是先请求课程首页，在回调函数在构造一个请求到课程详情页面，再到处理课程详情页面
+    的回调函数解析出课程作者
+    scrapy.Request 构造请求
+    url 参数 ，可以使用urljoin方法构造全链接
+    callback 参数 相应的解析函数
+
+
+模拟登录
+    模拟登录抓取的过程类似上面介绍的多页面抓取，只不过是将第一个页面的抓取变为提交一个登录表单，登录成功后，
+    scrapy 会带着返回的 cookie 进行下面的抓取，这样就能抓取到登录才能看到的内容。
+
+    关键在于怎么处理登录页面，怎么构造请求登录需要的数据
+    POST实验楼登录
+        def start_requests(self):
+        return [scrapy.Request(
+            url='https://www.shiyanlou.com/api/v2/auth/login',
+            method='POST',
+            body=json.dumps({
+                'login': 'demo@shiyanlou.com',
+                'password': 'abcd1234'
+            }),
+            headers={
+                'Content-Type': 'application/json;charset=UTF-8',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36'
+            },
+            callback=self.after_parse
+        )]
+
+    涉及url、method、body、headers
+
