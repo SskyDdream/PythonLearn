@@ -1,0 +1,90 @@
+Scrapy简单介绍
+
+Scrapy主要拥有下面这些功能和特点
+    1.内置数据提取器，支持XPath和Scrapy自己的CSS Selector语法，并且支持正则表达式，方便从网页提取信息
+    2.交互式的命令行工具，方便测试Selector和debugging爬虫
+    3.支持将数据导出为JSON、CSV，XML格式
+    4.内置很多拓展和中间件用于处理
+        cookies和session
+        HTTP的压缩、认证、缓存
+        robots.txt
+        爬虫深度限制
+    5.可拓展性强，可运行自己编写的特定功能的插件
+    除了列出的这些，还有很多小功能，比如内置的文件、图片下载器等等。另外，Scrapy基于twisted这个高性能的事件驱动网络引擎框架
+    换句话说就是，scrapy爬虫拥有很多的性能
+
+知识点
+    scrapy框架介绍、scrapy框架安装、数据提取器：CSS和XPATH、scrapy shell、正则表达式数据提取、starts_urls
+
+
+    数据提取器
+        scrapy内置两种数据提取语法：CSS和XPATH。
+
+        scrapy shell 提供了一个交互式的python环境方便我们测试和debug爬虫,使用方法如下:
+        scrapy shell [url]
+        需要提供一个网页的url，执行命令后，scrapy会自动下载这个url对应的网页，将结果封装为scrapy内部的一个response对象并注入到python shell中，
+        在这个response对象上，可以直接使用scrapy内置的css和xpath数据提取器
+
+
+    CSS Selector
+        顾名思义，css selector就是css的语法来定位标签。例如提取例子网页中ID为images的div下所有a标签的文本，使用css语法可以这样写：
+        response.css('div#images a::text').extract()
+        div#images 表示id为images的div，如果是类名为images，这里就是div.images。 div a 表示该div下所有a标签， ::text 表示提取文本
+        extract()函数执行提取操作，返回一个列表；如果只想要列表中第一个a标签下的文本,可以使用extracrt_first()函数
+        extract_first()方法支持对没有匹配到的元素提供一个默认值
+        response.css('div#images p::text').extract_first(default="默认值")
+
+        如果要提取所有a标签的href链接，可以这样写：
+        response.css('div#images a::attr(href)').extract()
+        任何标签的属性都可以用attr()提取
+
+        如果div标签的class属性有多个属性值，用css提取器可以写为 div[class='r1 r2 r3'] 或div.r1.r2.r3
+
+
+    XPath
+        XPath（XML Path Language）是一门路径提取语言，最初被设计用来从XML文档中提取部分信息，现在它的这套提取方法也可以用于HTML文档上。
+        <div class="company">
+          <h2>腾讯</h2>
+            <img src="tencent.jpg">
+         <p class="location">深圳</p>
+        </div>
+
+        这里最外层的div是整个文档的一个子节点，里面包含的公司信息标签都是div的子节点，节点标签之间的内容称为这个节点的文本(text)，如腾讯是h2标签的文本。
+        节点标签内部称为节点的属性，如src是img标签的一个属性，每个标签都可以有class属性。每个属性都有一个或多个对应的值。
+        那么爬虫的主要目的其实是从一个文档中获取需要的文本或属性的值。
+
+        节点选择的基本规则
+            nodename 选取此节点的所有子节点
+            / 从根节点选取
+            // 从匹配选择的当前节点选择文档中的节点，而不考虑它们的位置
+            . 选取当前节点
+            .. 选取当前节点的父节点
+
+            / 表示从根节点开始选取，比如，你想要选取title节点，就需要按标签的阶级关系来定位：
+            response.xpath('/html/head/title').extract()
+
+            而使用// 就可以不用管标签在文档中位置
+            response.xpath('//title').extract()
+
+            当选取到的标签不止一个的时候，会返回一个列表，比如我们选取所有公司的名称所在的h2标签
+            response.xpath('//h2/text()').extract()
+
+            而如果想要选取属性值，在属性名称前面加上@符号就可以了，比如我们选取所有img的src属性：
+            response.xpath('//img@src').extract()
+
+            前面我们有说到过，一个标签的属性值可以存在多个，比如<div class="name1 name2 name3">hello</div>,这种情况下进行定位的时候，
+            把所有类名都写上就比较麻烦。这时候可以选取一个唯一代表该div的类名，假设我们选了name2,然后可以使用contains(@attr, "value")方法，
+            该方法表示，只要标签的属性包含指定的值就可以：
+                response.xpath('//div[contains(@class, "name")]/text()').extract()
+
+    re和re_first方法
+        使用extract直接提取的内容可能并不符合格式要求，比如上面的css提取器例子中，获取第一个a标签的text是这样的： Name:My image 1,
+        现在要求不要开头的Name: 和结尾的空格,这时候就可以使用re()替代extract()方法，使用正则表达式对提取的内容做进一步的处理：
+        response.css('div#images a::text').re('Name:(.+)')
+
+
+
+
+
+
+
