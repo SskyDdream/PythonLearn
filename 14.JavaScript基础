@@ -1,0 +1,187 @@
+JavaScript基础
+
+知识点
+    JavaScript 数据类型、JavaScript 控制结构、JavaScript 函数与匿名函数、JavaScript 对象、JavaScript 原型、JavaScript 数组、JavaScript 类
+
+简单数据类型
+    JS简单的数据类型包括数字、字符串、布尔值、null和underfined
+
+    JS只有一种数字类型，它在内部被表示为一个64位的浮点数，有两个特殊的表示运算结果的数字：NaN表示不能产生正常结果的运算结果，Infinity表示一个无穷大的数值
+
+    字符串又一个属性length和一些特殊方法
+        >'shiyanlou'.toUpperCase()
+        <'SHIYANLOU'
+        >'shiyanlou'.charAT(3)
+        <'y'
+    字符串是不可变的，也就是说，一旦一个字符串被创建了，那就无法修改它，可以通过'+'运算符连接字符串，创建一个新的字符串
+
+    Null类型只有一个null值，表示不存在的对象，Underfined类型也只有underfined值，当变量微被初始化时，那它的默认值就是undefined
+
+
+变量和常量
+    JS用var 或者 let 声明一个变量，用const声明常量
+    >var num = 42;
+    >let name = 'shiyanlou';
+    >const PI = 3.14;
+    使用var声明的变量，如果只是在函数内部，那么它只在函数内部有效，如果在函数外部，那么它就是全局有效的。
+    let声明的变量，只是这个语句所在的代码块有效，也就是{ } 内
+
+控制结构
+    if （条件1）{
+        当条件1为True时执行的代码；
+    } else if (条件2) {
+        当条件2为True时执行的代码；
+    } else {
+        当条件1和条件2都不为True时执行的代码；
+    }
+
+
+    swich/case语句
+        在做大量选择判断的时候，如果依然使用if/else结构，那么代码有可能变得很凌乱
+
+        swich(k){
+        case k1:
+            执行代码块1；
+            break；
+        case k2:
+            执行代码块2；
+            break;
+        default:
+            默认执行 （k值没有在case1中找到匹配时）；
+
+        }
+
+    循环
+        for循环
+            for (变量 = 初始值；循环条件；变量累加方法){
+                循环语句；
+            }
+        例如：
+            <script>
+            for (var i=0;i<8;i++){
+                document.write('number is ' +i+<br>);
+            }
+            </script>
+
+        while 循环
+            while （条件） {
+                需要执行的代码;
+            }
+
+        do/while 循环
+            do {
+                需要执行的代码;
+                }
+            while(条件)；
+
+           break 和 continue
+
+
+    函数
+        JS中，函数由关键字function定义
+
+            function 函数名 (参数1， 参数2) {
+                函数体；
+                return  返回值；
+                }
+             function add (x,y){
+                return x+y;
+             }
+        匿名函数（箭头函数）
+            参数 => 语句；
+            >[2, 3, 4, 5].map(x => x**2)
+            <[4, 9, 16, 25]
+
+
+    对象
+        JS的对象是可变的键值对集合。对象的键可以是任意字符串，包括空字符串，值可以是除了underfined之外的任意值
+        下面是一个简单的对象例子，包含一个 value 属性和一个 incrment 方法：
+
+
+         > var myObject = {
+            'value': 0,
+            'incrment': function(count) {
+            this.value += typeof count === 'number' ? count : 1;
+            }
+            };
+         > myObject.incrment()
+         > myObject.value
+         < 1
+         > myObject.incrment(2)
+         > myObject.value
+         < 3
+
+
+    原型
+
+    数组
+        数组通常是由多个相同类型的值构成的一个集合，每个值都是这个数组的元素。JS 中数组的基本使用方法如下
+        > var fruits = ['apple', 'orange', 'banana']
+        // 获取数组长度
+        > fruits.length
+        < 3
+        // 通过下标访问数组元素
+        > fruits[1]
+        < "orange"
+        // 调用数组方法
+        > fruits.join(' ');
+        < "apple orange banana"
+
+    类
+        ES6之后
+
+        class Dog1 {
+      // 构造函数
+    constructor(name) {
+        // 属性
+        this.name ＝ name
+    }
+    bark() {
+        console.log('汪汪汪')
+    }
+    }
+
+    // 实例化一个对象
+    > dog = new Dog1('旺财');
+    > dog.bark();
+    < '汪汪汪'
+
+
+
+
+
+
+
+组件boostrap V3 知识
+    反色的导航条
+        通过添加 .navbar-inverse 类可以改变导航条的外观。
+        <nav class="navbar navbar-inverse">
+         ...
+        </nav>
+    导航条固定在顶部
+    一个 .container 或 .container-fluid 容器，从而让导航条居中
+
+    导航条的可访问性
+    务必使用 <nav> 元素，或者，如果使用的是通用的 <div> 元素的话，务必为导航条设置 role="navigation" 属性，
+    这样能够让使用辅助设备的用户明确知道这是一个导航区域。
+    navbar-brand
+
+
+    列表组是灵活又强大的组件，不仅能用于显示一组简单的元素，还能用于复杂的定制的内容
+        <ul class="list-group">
+          <li class="list-group-item">Cras justo odio</li>
+          <li class="list-group-item">Dapibus ac facilisis in</li>
+          <li class="list-group-item">Morbi leo risus</li>
+          <li class="list-group-item">Porta ac consectetur ac</li>
+          <li class="list-group-item">Vestibulum at eros</li>
+        </ul>
+
+    可用的变体
+    用下面的任何一个类即可改变标签的外观。
+
+    <span class="label label-default">Default</span>
+    <span class="label label-primary">Primary</span>
+    <span class="label label-success">Success</span>
+    <span class="label label-info">Info</span>
+    <span class="label label-warning">Warning</span>
+    <span class="label label-danger">Danger</span
